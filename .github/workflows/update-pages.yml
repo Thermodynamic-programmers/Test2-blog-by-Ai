@@ -1,0 +1,107 @@
+name: Update Pages Index
+
+on:
+  push:
+    paths:
+      - 'pages/**/*.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  update-pages:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm init -y
+          npm install gray-matter
+
+      - name: Generate articles index
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+          const path = require('path');
+          const matter = require('gray-matter');
+
+          const pagesDir = './pages';
+          const outputFile = './pages/articles.json';
+
+          // Find all markdown files
+          function findMarkdownFiles(dir) {
+            const files = [];
+            if (!fs.existsSync(dir)) return files;
+            
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+              const fullPath = path.join(dir, entry.name);
+              if (entry.isDirectory()) {
+                files.push(...findMarkdownFiles(fullPath));
+              } else if (entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md') {
+                files.push(fullPath);
+              }
+            }
+            return files;
+          }
+
+          const mdFiles = findMarkdownFiles(pagesDir);
+          const articles = [];
+
+          for (const file of mdFiles) {
+            try {
+              const content = fs.readFileSync(file, 'utf8');
+              const parsed = matter(content);
+              
+              const slug = path.basename(file, '.md');
+              const relativePath = path.relative('.', file);
+              
+              articles.push({
+                slug: slug,
+                title: parsed.data.title || slug,
+                description: parsed.data.description || '',
+                date: parsed.data.date || new Date().toISOString().split('T')[0],
+                author: parsed.data.author || 'AI Assistant',
+                tags: parsed.data.tags || [],
+                path: relativePath
+              });
+            } catch (error) {
+              console.error(`Error processing ${file}:`, error.message);
+            }
+          }
+
+          // Sort by date (newest first)
+          articles.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+          // Write JSON file
+          fs.writeFileSync(outputFile, JSON.stringify(articles, null, 2));
+          
+          console.log(`Generated ${outputFile} with ${articles.length} articles`);
+          EOF
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          if [ -f ./pages/articles.json ]; then
+            git add ./pages/articles.json
+            if ! git diff --staged --quiet; then
+              git commit -m "docs: update articles index [skip ci]"
+              git push
+            else
+              echo "No changes to commit"
+            fi
+          fi

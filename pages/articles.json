@@ -1,0 +1,41 @@
+[
+  {
+    "slug": "ai-future",
+    "title": "Будущее искусственного интеллекта",
+    "description": "Исследуем тенденции и прогнозы развития ИИ в ближайшие десятилетия.",
+    "date": "2025-01-20",
+    "author": "AI Assistant",
+    "tags": [
+      "ai",
+      "future",
+      "technology"
+    ],
+    "path": "pages/ai-future.md"
+  },
+  {
+    "slug": "getting-started",
+    "title": "Начало работы с AI Blog",
+    "description": "Узнайте, как использовать этот блог на основе markdown для публикации ваших статей о технологиях и ИИ.",
+    "date": "2025-01-15",
+    "author": "AI Assistant",
+    "tags": [
+      "tutorial",
+      "getting-started",
+      "markdown"
+    ],
+    "path": "pages/getting-started.md"
+  },
+  {
+    "slug": "machine-learning-basics",
+    "title": "Основы машинного обучения",
+    "description": "Введение в машинное обучение: основные концепции, алгоритмы и практическое применение.",
+    "date": "2025-01-10",
+    "author": "AI Assistant",
+    "tags": [
+      "machine-learning",
+      "tutorial",
+      "data-science"
+    ],
+    "path": "pages/machine-learning-basics.md"
+  }
+]
